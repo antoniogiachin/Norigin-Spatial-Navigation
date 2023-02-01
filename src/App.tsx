@@ -12,6 +12,7 @@ import shuffle from 'lodash/shuffle';
 import {
   useFocusable,
   init,
+  listenMouseEvents,
   FocusContext,
   FocusDetails,
   FocusableComponentLayout,
@@ -24,6 +25,8 @@ init({
   debug: false,
   visualDebug: false
 });
+
+listenMouseEvents(true);
 
 const rows = shuffle([
   {
@@ -287,11 +290,13 @@ function ContentRow({
   const scrollingRef = useRef(null);
 
   const onAssetFocus = useCallback(
-    ({ x }: { x: number }) => {
-      scrollingRef.current.scrollTo({
-        left: x,
-        behavior: 'smooth'
-      });
+    ({ x }: { x: number }, _: object, { event }: FocusDetails) => {
+      if(event instanceof KeyboardEvent){
+        scrollingRef.current.scrollTo({
+          left: x,
+          behavior: 'smooth'
+        });
+      }
     },
     [scrollingRef]
   );
@@ -381,11 +386,13 @@ function Content() {
   }, []);
 
   const onRowFocus = useCallback(
-    ({ y }: { y: number }) => {
-      ref.current.scrollTo({
-        top: y,
-        behavior: 'smooth'
-      });
+    ({ y }: { y: number }, _: object, { event }: FocusDetails) => {
+      if(event instanceof KeyboardEvent){
+        ref.current.scrollTo({
+          top: y,
+          behavior: 'smooth'
+        });
+      }
     },
     [ref]
   );

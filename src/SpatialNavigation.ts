@@ -211,6 +211,8 @@ class SpatialNavigationService {
   private keyUpEventListener: (event: KeyboardEvent) => void;
 
   private keyMap: KeyMap;
+  
+  private mouseEnabled: boolean;
 
   private debug: boolean;
 
@@ -536,6 +538,7 @@ class SpatialNavigationService {
     this.keyDownEventListener = null;
     this.keyUpEventListener = null;
     this.keyMap = DEFAULT_KEY_MAP;
+    this.mouseEnabled = false;
 
     this.onKeyEvent = this.onKeyEvent.bind(this);
     this.pause = this.pause.bind(this);
@@ -547,6 +550,7 @@ class SpatialNavigationService {
     this.setThrottle = this.setThrottle.bind(this);
     this.destroy = this.destroy.bind(this);
     this.setKeyMap = this.setKeyMap.bind(this);
+    this.listenMouseEvents = this.listenMouseEvents.bind(this);
     this.getCurrentFocusKey = this.getCurrentFocusKey.bind(this);
 
     this.debug = false;
@@ -626,6 +630,7 @@ class SpatialNavigationService {
       this.focusableComponents = {};
       this.paused = false;
       this.keyMap = DEFAULT_KEY_MAP;
+      this.mouseEnabled = false;
 
       this.unbindEventHandlers();
     }
@@ -1360,6 +1365,14 @@ class SpatialNavigationService {
     };
   }
 
+  isMouseEnabled() {
+    return this.mouseEnabled;
+  }
+
+  listenMouseEvents(enable: boolean) {
+    this.mouseEnabled = enable;
+  }
+
   isFocusableComponent(focusKey: string) {
     return !!this.focusableComponents[focusKey];
   }
@@ -1504,4 +1517,4 @@ class SpatialNavigationService {
 /** @internal */
 export const SpatialNavigation = new SpatialNavigationService();
 
-export const { init, setThrottle, destroy, setKeyMap } = SpatialNavigation;
+export const { init, setThrottle, destroy, setKeyMap, listenMouseEvents, isMouseEnabled } = SpatialNavigation;
