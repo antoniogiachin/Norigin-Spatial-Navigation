@@ -94,6 +94,15 @@ const useFocusableHook = <P>({
     [onEnterPress, extraProps]
   );
 
+  const onMouseClickHandler = useCallback(
+    (details: KeyPressDetails) => {
+      if (focusable) {
+        onEnterPress(extraProps, details);
+      }
+    },
+    [onEnterPress, focusable, extraProps]
+  );
+
   const onEnterReleaseHandler = useCallback(() => {
     onEnterRelease(extraProps);
   }, [onEnterRelease, extraProps]);
@@ -142,17 +151,19 @@ const useFocusableHook = <P>({
 
   const onMouseEnterHandler = useCallback(
     (event: MouseEvent) => {
-      SpatialNavigation.setFocus(focusKey, { event });
+      if (focusable) {
+        SpatialNavigation.setFocus(focusKey, { event });
+      }
     },
-    [focusKey]
+    [focusable, focusKey]
   );
 
   useEffectOnce(() => {
     const node = ref.current;
-    if(node && SpatialNavigation.isMouseEnabled() && typeof window !== 'undefined' && window.addEventListener) {
+    if (node && SpatialNavigation.isMouseEnabled() && typeof window !== 'undefined' && window.addEventListener) {
       node.addEventListener('mouseenter', onMouseEnterHandler);
-      if(onEnterPressHandler){
-        node.addEventListener('click', onEnterPressHandler);
+      if (onMouseClickHandler) {
+        node.addEventListener('click', onMouseClickHandler);
       }
     }
     SpatialNavigation.addFocusable({
@@ -179,19 +190,19 @@ const useFocusableHook = <P>({
       SpatialNavigation.removeFocusable({
         focusKey
       });
-      if(node){
+      if (node) {
         node.removeEventListener('mouseenter', onMouseEnterHandler);
-        node.removeEventListener('click', onEnterPressHandler);
+        node.removeEventListener('click', onMouseClickHandler);
       }
     };
   });
 
   useEffect(() => {
     const node = ref.current;
-    if(node && SpatialNavigation.isMouseEnabled() && typeof window !== 'undefined' && window.addEventListener) {
+    if (node && SpatialNavigation.isMouseEnabled() && typeof window !== 'undefined' && window.addEventListener) {
       node.addEventListener('mouseenter', onMouseEnterHandler);
-      if(onEnterPressHandler){
-        node.addEventListener('click', onEnterPressHandler);
+      if (onMouseClickHandler) {
+        node.addEventListener('click', onMouseClickHandler);
       }
     }
 
@@ -208,9 +219,9 @@ const useFocusableHook = <P>({
     });
 
     return () => {
-      if(node){
+      if (node) {
         node.removeEventListener('mouseenter', onMouseEnterHandler);
-        node.removeEventListener('click', onEnterPressHandler);
+        node.removeEventListener('click', onMouseClickHandler);
       }
     }; 
   }, [
@@ -223,7 +234,8 @@ const useFocusableHook = <P>({
     onArrowPressHandler,
     onFocusHandler,
     onBlurHandler,
-    onMouseEnterHandler
+    onMouseEnterHandler,
+    onMouseClickHandler
   ]);
 
   return {
