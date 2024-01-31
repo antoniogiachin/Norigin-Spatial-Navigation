@@ -112,10 +112,10 @@ It is useful when you first open the page, or i.e. when your modal Popup gets mo
 
 ```jsx
 import React, { useEffect } from 'react';
-import { useFocusable, FocusContext } from '@noriginmedia/norigin-spatial-navigation';
+import { useFocusable, FocusContext, setFocus } from '@noriginmedia/norigin-spatial-navigation';
 
 function Popup() {
-  const { ref, focusKey, focusSelf, setFocus } = useFocusable();
+  const { ref, focusKey, focusSelf } = useFocusable();
 
   // Focusing self will focus the Popup, which will pass the focus down to the first Child (ButtonPrimary)
   // Alternatively you can manually focus any other component by its 'focusKey'
@@ -162,12 +162,16 @@ function Menu() {
 Sometimes you don't want the focus to leave your component, for example when displaying a Popup, you don't want the focus to go to
 a component underneath the Popup. This can be enabled with `isFocusBoundary` flag passed to the `useFocusable` hook.
 
+Additionally `focusBoundaryDirections` array can be provided to restrict focus movement only in specific directions.
+That might be useful when defining focus container for menu bar. Please note, that `focusBoundaryDirections` requires
+`isFocusBoundary` to be set to `true`.
+
 ```jsx
 import React, { useEffect } from 'react';
 import { useFocusable, FocusContext } from '@noriginmedia/norigin-spatial-navigation';
 
 function Popup() {
-  const { ref, focusKey, focusSelf } = useFocusable({isFocusBoundary: true});
+  const { ref, focusKey, focusSelf } = useFocusable({isFocusBoundary: true, focusBoundaryDirections: ['up', 'down']});
 
   useEffect(() => {
     focusSelf();
@@ -241,15 +245,37 @@ Enables throttling of the key event listener.
 Works only in combination with `throttle` > 0. By default, `throttle` only throttles key down events (i.e. when you press and hold the button).
 When this feature is enabled, it will also throttle rapidly fired key presses (rapid "key down + key up" events).
 
+##### `useGetBoundingClientRect`: boolean (default: false)
+This flag enables using `getBoundingClientRect` for measuring element sizes and positions. Default behavior is using DOM `offset` values.
+The difference is that `getBoundingClientRect` will measure coordinates and sizes post CSS transforms, while `offset` measurement will measure them pre CSS transforms.
+For example if you have an element with `translateX(50)`, the X position with the default measurement will still be 0, while `getBoundingClientRect` measurement will result in X being 50.
+The choice depends on how often you are using transforms, and whether you want it to result into coordinates shift or not.
+Sometimes you would want element to be *visually* translated, but its coordinates to be calculated as it was before the translation.
+
+##### `shouldFocusDOMNode`: boolean (default: false)
+This flag makes the underlying _accessible_ DOM node to become focused as well. This is useful for [_accessible_](https://developer.mozilla.org/en-US/docs/Web/Accessibility) web applications.
+Note that it is the developer's responsibility to make the elements accessible! There are [many resources](https://www.google.com/search?q=web+accessibility) online on the subject. [HTML Semantics and Accessibility Cheat Sheet](https://webaim.org/resources/htmlcheatsheet/) is perhaps a good start,
+as it dives directly into the various html tags and how it complies with accessibility. Non-accessible tags like `<div>` needs to have the [tabindex](https://developer.mozilla.org/en-US/docs/Web/Accessibility/Keyboard-navigable_JavaScript_widgets) attribute set.
+Also consider `role` and `aria-label` attributes. But that depends on the application.
+
+The flag is ignored if `nativeMode` is set.
+
+### `shouldUseNativeEvents`: boolean (default: false)
+This flag, when set to true, enables the use of native events for triggering actions, such as clicks or key presses. For instance, the onClick method will be triggered while pressing the enterKey, as well as cliicking the element itself. It is particularly beneficial for enhancing the accessibility of web applications. When shouldUseNativeEvents is active, the underlying accessible DOM node becomes the focus of the event.
+
+##### `rtl`: boolean (default: false)
+This flag changes focus behavior for layouts in right-to-left (RTL) languages such as Arabic and Hebrew.
+
 ### `setKeyMap`
-Method to set custom key codes. I.e. when the device key codes differ from a standard browser arrow key codes.
+Method to set custom key codes (numbers) or key event names (strings) [MDN Docs](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/keyCode#non-printable_keys_function_keys). I.e. when the device key codes differ from a standard browser arrow key codes.
 ```jsx
 setKeyMap({
-  left: 9001,
-  up: 9002,
-  right: 9003,
-  down: 9004,
-  enter: 9005
+  left: 9001, // or 'ArrowLeft'
+  up: 9002, // or 'ArrowUp'
+  right: 9003, // or 'ArrowRight'
+  down: 9004, // or 'ArrowDown'
+  enter: 9005 // or 'Enter',
+  back: 9006
 });
 ```
 
@@ -261,7 +287,8 @@ setKeyMap({
   up: [203, 211],
   right: [206, 213],
   down: [204, 212],
-  enter: [195]
+  enter: [195],
+  back: [196]
 });
 ```
 
@@ -277,6 +304,31 @@ setThrottle({
 
 ### `destroy`
 Resets all the settings and the storage of focusable components. Disables the navigation service.
+
+### `doesFocusableExist` (function) `(focusKey: string) => boolean`
+Returns `true` if Focusable Container with given `focusKey` is created, `false` otherwise.
+
+### `setFocus` (function) `(focusKey: string) => void`
+Method to manually set the focus to a component providing its `focusKey`. If `focusKey` is not provided or
+is equal to `ROOT_FOCUS_KEY`, an attempt of focusing one of the force-focusable components is made.
+See `useFocusable` hook  [`forceFocus`](#forcefocus-default-false) parameter for more details.
+
+### `getCurrentFocusKey` (function) `() => string`
+Returns the currently focused component's focus key.
+
+### `navigateByDirection` (function) `(direction: string, focusDetails: FocusDetails) => void`
+Method to manually navigation to a certain direction. I.e. you can assign a mouse-wheel to navigate Up and Down.
+Also useful when you have some "Arrow-like" UI in the app that is meant to navigate in certain direction when pressed
+with the mouse or a "magic remote" on some TVs.
+
+### `pause` (function)
+Pauses all the key event handlers.
+
+### `resume` (function)
+Resumes all the key event handlers.
+
+### `updateAllLayouts` (function)
+Manually recalculate all the layouts. Rarely used.
 
 ### `useFocusable` hook
 This hook is the main link between the React component (its DOM element) and the navigation service.
@@ -307,10 +359,23 @@ By default, when the currently focused component is unmounted (deleted), navigat
 on the nearest available sibling of that component. If this behavior is undesirable, you can disable it by setting this
 flag to `false`.
 
+##### `forceFocus` (default: false)
+This flag makes the Focusable Container force-focusable. When there's more than one force-focusable component,
+the closest to the top left viewport corner (0,0) is force-focused. Such containers can be force-focused when there's
+no currently focused component (or `focusKey` points to not existing component) when navigating with arrows.
+Also, when `focusKey` provided to `setFocus` is not defined or equal to `ROOT_FOCUS_KEY`.
+In other words, if focus is lost, it can be restored to one of force-focusable components by navigating with arrows
+or by focusing `ROOT_FOCUS_KEY`.
+
 ##### `isFocusBoundary` (default: false)
 This flag makes the Focusable Container keep the focus inside its boundaries. It will only block the focus from leaving
 the Container via directional navigation. You can still set the focus manually anywhere via `setFocus`.
 Useful when i.e. you have a modal Popup and you don't want the focus to leave it.
+
+##### `focusBoundaryDirections` (optional)
+This flag sets in which directions focus is blocked from leaving Focusable Container via directional navigation.
+It accepts an array containing `left`, `right`, `up` and/or `down` values. If not specified, all directions are blocked.
+It requires `isFocusBoundary` to be enabled to take effect.
 
 ##### `focusKey` (optional)
 If you want your component to have a persistent focus key, it can be set via this property. Otherwise, it will be auto generated.
@@ -322,6 +387,11 @@ I.e. when you have a Popup and you want some specific button to be focused inste
 
 ##### `onEnterPress` (function)
 Callback that is called when the component is focused and Enter key is pressed.
+Receives `extraProps` (see below) and `KeyPressDetails` as arguments.
+
+##### `onBackPress` (function)
+Callback that is called when the component is focused and Back key is pressed.
+If no callback was provided to the focused component, the event will go up through the Focusable Tree as long as a one was found or the top was reached up.
 Receives `extraProps` (see below) and `KeyPressDetails` as arguments.
 
 ##### `onEnterRelease` (function)
@@ -366,9 +436,6 @@ function Button() {
 Method to set the focus on the current component. I.e. to set the focus to the Page (Container) when it is mounted, or
 the Popup component when it is displayed.
 
-##### `setFocus` (function) `(focusKey: string) => void`
-Method to manually set the focus to a component providing its `focusKey`.
-
 ##### `focused` (boolean)
 Flag that indicates that the current component is focused.
 
@@ -380,23 +447,6 @@ Only works when `trackChildren` is enabled!
 String that contains the focus key for the component. It is either the same as `focusKey` passed to the hook params,
 or an automatically generated one.
 
-#### `getCurrentFocusKey` (function) `() => string`
-Returns the currently focused component's focus key.
-
-##### `navigateByDirection` (function) `(direction: string, focusDetails: FocusDetails) => void`
-Method to manually navigation to a certain direction. I.e. you can assign a mouse-wheel to navigate Up and Down.
-Also useful when you have some "Arrow-like" UI in the app that is meant to navigate in certain direction when pressed
-with the mouse or a "magic remote" on some TVs.
-
-##### `pause` (function)
-Pauses all the key event handlers.
-
-##### `resume` (function)
-Resumes all the key event handlers.
-
-##### `updateAllLayouts` (function)
-Manually recalculate all the layouts. Rarely used.
-
 ### `FocusContext` (required for Focusable Containers)
 Used to provide the `focusKey` of the current Focusable Container down the Tree to the next child level. [See Example](#wrapping-leaf-components-with-a-focusable-container)
 
@@ -406,6 +456,8 @@ Used to provide the `focusKey` of the current Focusable Container down the Tree 
 interface FocusableComponentLayout {
   left: number; // absolute coordinate on the screen
   top: number; // absolute coordinate on the screen
+  readonly right: number; // absolute coordinate on the screen
+  readonly bottom: number; // absolute coordinate on the screen
   width: number;
   height: number;
   x: number; // relative to the parent DOM element
