@@ -16,7 +16,8 @@ import {
   FocusContext,
   FocusDetails,
   FocusableComponentLayout,
-  KeyPressDetails
+  KeyPressDetails,
+  setFocus
 } from './index';
 
 const logo = require('../logo.png').default;
@@ -226,7 +227,7 @@ function Asset({ title, color, onEnterPress, onFocus }: AssetProps) {
     onEnterPress,
     onFocus,
     onBackPress: withBackPress? () => {
-      alert('Custom Back action');
+      // alert('Custom Back action');
     }: undefined,
     extraProps: {
       title,
@@ -373,7 +374,7 @@ const ScrollingRows = styled.div`
 `;
 
 function Content() {
-  const { ref, focusKey, setFocus } = useFocusable({
+  const { ref, focusKey } = useFocusable({
     onBackPress(){
       setFocus("MENU");
     }
