@@ -4,6 +4,61 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+# [2.1.0]
+## Added
+- new `init` config option `shouldUseNativeEvents` that enables the use of native events for triggering actions, such as clicks or key presses.
+- new `init` config option `rtl` that changes focus behavior for layouts in right-to-left (RTL) languages such as Arabic and Hebrew. 
+
+# [2.0.2]
+## Added
+- Console warning when passing an empty `ref` to `useFocusable`
+- Support for string names for Key Events. Now you can configure the key map with numbers or event names like `ArrowRight`.
+
+# [2.0.1]
+## Fixed
+- Restoring focus to the parent with `preferredChildFocusKey` set
+
+# [2.0.0]
+## Added
+- New property for `useFocusable` - `focusBoundaryDirections`, array of directions to block when `isFocusBoundary` is enabled
+- New property `useFocusable` - `forceFocus` to mark the component to be the target for auto-restore focus logic when focus is lost
+- New global method `doesFocusableExist` to check if the focusable component exists before setting focus on it. Safety feature
+
+## Changed
+- [BREAKING] Top level exports `setFocus, getCurrentFocusKey, navigateByDirection, pause, resume, updateAllLayouts` are now exported from `SpatialNavigation` instead of `useFocusable` hook.
+
+## Fixed
+- Context display name is now called `FocusContext` in React Devtools
+- Updating `lastFocusedChildKey` for newly added parent components
+
+# [1.3.3]
+## Fixed
+- Fixed the issue where component would have kept itself in the array of `parentsHavingFocusedChild` array after removal
+- Further improvements to `autoRestoreFocus` logic to trigger not only on Lead components, but also on Parents that had focused child when being removed. Edge case, normally children are removed first.
+
+# [1.3.2]
+## Fixed
+- Fixed a bug where parents were not updating their `hasFocusedChild` when new child is created and focused right away
+- Fixed a bug where `lastFocusedChild` was updated only on blur, but not on manual focus, resulting in a wrong key being stored
+
+## Changed
+- Renamed `useFocusedContext` file to `useFocusContext` to match the export name
+
+# [1.3.1]
+## Added
+- Extra debug logs, printing focusable components data in addition to DOM nodes.
+- Extra call to set `focused` state to `false` on unmount. This is to support "double-mount" in Strict mode in React 18.
+
+## Changed
+- [Potentially Breaking] Auto restore focus when the item is removed is now happening with a slight debounced delay.
+
+## Removed
+- Custom `useEffectOnce` hook that introduced issues with unmounted components being remained as focusable.
+
+# [1.3.0]
+## Added
+- new `init` config option `shouldFocusDOMNode` that focuses the underlying _accessible_ DOM node too.
+
 # [1.2.0]
 ## Added
 - new `init` config option `useGetBoundingClientRect` that affects the measurements of sizes and coordinates.
